@@ -1,8 +1,15 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
- 
+
+/* 
+------------------ NETWORK CONFIGURATION ------------------
+*/
 const char* ssid = "Shark";
 const char* password =  "0542557736";
+
+/* 
+------------------ MQTT CONFIGURATION ------------------
+*/
 const char* mqttServer = "10.0.0.1";
 const int mqttPort = 1883;
 const char* mqttUser = "user1";
