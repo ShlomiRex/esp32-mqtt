@@ -48,7 +48,7 @@ void setup() {
     }
   }
  
-  client.publish("esp/test", "Hello from ESP32");
+  client.publish("esp/sensors", "Hello from ESP32");
  
 }
  
