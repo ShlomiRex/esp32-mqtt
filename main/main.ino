@@ -88,7 +88,7 @@ void setup() {
  
   Serial.begin(115200);
 
-  ble_setup();
+  blt_setup();
   dht_setup();
   wifi_setup();
   mqtt_setup();
@@ -107,11 +107,11 @@ void dht_setup() {
 /**
  * Setup bluetooth client.
  */ 
-void ble_setup() {
+void blt_setup() {
   #if(USE_BLT == 1)
     Serial.println("BLT Setup...");
     SerialBT.begin(BLT_NAME); //Bluetooth device name
-    Serial.println("The device " + String(BLT_NAME)  + " started, now you can pair it with bluetooth!");
+    Serial.println("BLT Device Name: " + String(BLT_NAME));
   #endif
 }
 
@@ -120,15 +120,24 @@ void ble_setup() {
  */ 
 void wifi_setup() {
   #if(USE_WIFI == 1)
+    WiFi.disconnect();
+
+    
     Serial.println("WiFi Setup...");
     WiFi.begin(wifi_ssid, wifi_password);
-  
+    Serial.println("Connecting to " + String(wifi_ssid) + " and password " + String(wifi_password)); 
+
+    Serial.println("Connecting to WiFi..");
+    
     while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.println("Connecting to WiFi..");
+      //delay(500);
+      //Serial.println("Connecting to WiFi..");
     }
   
     Serial.println("Connected to the WiFi network");
+
+    Serial.println("local ip: ");
+    Serial.println(WiFi.localIP());
   #endif
 }
 
