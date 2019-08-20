@@ -2,7 +2,7 @@
 ------------------ PROJECT CONFIGURATIONS ------------------
 */
 //Edit this section to enable/disable services on esp32
-#define USE_WIFI 0
+#define USE_WIFI 1
 #define USE_MQTT 0
 #define USE_BLT 1
 #define USE_SENSORS 0
@@ -12,8 +12,9 @@
 #if(USE_WIFI == 1)
 #include <WiFi.h>
 
-const char* ssid = "shlomi";
-const char* password =  "12345678";
+//NOT const because BLT can change it.
+char* wifi_ssid = "shlomi";
+char* wifi_password =  "12345678";
 WiFiClient espClient;
 
 #endif
@@ -120,7 +121,7 @@ void ble_setup() {
 void wifi_setup() {
   #if(USE_WIFI == 1)
     Serial.println("WiFi Setup...");
-    WiFi.begin(ssid, password);
+    WiFi.begin(wifi_ssid, wifi_password);
   
     while (WiFi.status() != WL_CONNECTED) {
       delay(500);
@@ -280,15 +281,14 @@ void process_blt(String str) {
     //Serial.println("ind = " + String(ind));
 
     int ssid_len = tens*10 + ones; //SSID len can be from 00 to 99 (2 chars)
-    Serial.println("SSID len:");
-    Serial.println(ssid_len);
+    //Serial.println("SSID len: " + String(ssid_len));
+    
     String ssid = "";
 
     int tmp_int = ind;
     
     for(; ind < tmp_int + ssid_len; ind++) {
       ssid += str[ind];
-      Serial.println(ssid);
     }
     Serial.println("SSID: " + ssid);
 
@@ -303,7 +303,24 @@ void process_blt(String str) {
     }
 
     Serial.println("PASSWORD: " + pass);
-    
+
+
+
+
+    #if(USE_WIFI == 1)
+      int ssid_str_len = ssid.length() + 1; //Null terminator (+1)
+      char ssid_char_array[ssid_str_len];
+      ssid.toCharArray(ssid_char_array, ssid_str_len);
+
+      int pass_str_len = pass.length() + 1; //Null terminator (+1)
+      char pass_char_array[pass_str_len];
+      pass.toCharArray(pass_char_array, pass_str_len);
+      
+      wifi_ssid = ssid_char_array;
+      wifi_password = pass_char_array;
+      
+      wifi_setup(); //Restart WiFi
+    #endif
   }
 
 #endif
