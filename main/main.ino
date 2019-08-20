@@ -13,8 +13,8 @@
 #include <WiFi.h>
 
 //NOT const because BLT can change it.
-char* wifi_ssid = "shlomi";
-char* wifi_password =  "12345678";
+char* wifi_ssid = "Shark";
+char* wifi_password =  "0542557736";
 WiFiClient espClient;
 
 #endif
@@ -90,7 +90,7 @@ void setup() {
 
   blt_setup();
   dht_setup();
-  wifi_setup();
+  //wifi_setup(); //dont connect to wifi streight away, wait for blt (For dev porpuses)
   mqtt_setup();
 }
 
@@ -132,6 +132,12 @@ void wifi_setup() {
     while (WiFi.status() != WL_CONNECTED) {
       //delay(500);
       //Serial.println("Connecting to WiFi..");
+
+
+      //If you accidently picked wrong ssid/password you need to change it.
+      //This lines prevents a deadlock of infinite loop to connect to non-existing ssid.
+      String res = read_blt();
+      process_blt(res);
     }
   
     Serial.println("Connected to the WiFi network");
