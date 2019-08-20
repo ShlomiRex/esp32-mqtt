@@ -4,16 +4,8 @@
 //Edit this section to enable/disable services on esp32
 #define USE_WIFI 0
 #define USE_MQTT 0
-#define USE_BLT 0
+#define USE_BLT 1
 #define USE_SENSORS 0
-
-/* 
------------------- DEFINES ------------------
-*/
-#define DHTTYPE DHT11
-#define DHTPin 12
-#define InPin 14 // input for light sensor
-
 /* 
 ------------------ WIFI CONFIGURATION ------------------
 */
@@ -49,6 +41,15 @@ const char* mqtt_topic_sensors = "esp/sensors";
 BluetoothSerial SerialBT;
 const char* BLT_NAME = "ESP32 Bluetooth";
 
+
+/* 
+------------------ BLT PROTOCOL CONFIGURATION ------------------
+*/
+
+//PC = Protocol Code
+const char PC_CHANGE_WIFI = '5';
+
+
 #endif
 
 
@@ -58,6 +59,10 @@ const char* BLT_NAME = "ESP32 Bluetooth";
 
 #if(USE_SENSORS == 1)
 #include "DHT.h"
+
+#define DHTTYPE DHT11
+#define DHTPin 12
+#define InPin 14 // input for light sensor
 
 float temperature = 0;
 float fahrenheit = 0;
@@ -93,6 +98,7 @@ void setup() {
  */ 
 void dht_setup() {
   #if(USE_SENSORS == 1) 
+    Serial.println("DHT Setup...");
     dht.begin();
   #endif
 }
@@ -102,8 +108,9 @@ void dht_setup() {
  */ 
 void ble_setup() {
   #if(USE_BLT == 1)
+    Serial.println("BLT Setup...");
     SerialBT.begin(BLT_NAME); //Bluetooth device name
-    Serial.println("The device " + BLT_NAME  + " started, now you can pair it with bluetooth!");
+    Serial.println("The device " + String(BLT_NAME)  + " started, now you can pair it with bluetooth!");
   #endif
 }
 
@@ -112,6 +119,7 @@ void ble_setup() {
  */ 
 void wifi_setup() {
   #if(USE_WIFI == 1)
+    Serial.println("WiFi Setup...");
     WiFi.begin(ssid, password);
   
     while (WiFi.status() != WL_CONNECTED) {
@@ -128,6 +136,7 @@ void wifi_setup() {
  */
 void mqtt_setup() {
   #if(USE_MQTT == 1)
+    Serial.println("MQTT Setup...");
     mqtt_client.setServer(mqttServer, mqttPort);
   
     while (!mqtt_client.connected()) {
@@ -155,6 +164,7 @@ void mqtt_setup() {
  */ 
 void read_sensors() {
   #if(USE_SENSORS == 1)
+  Serial.println("Reading sensors...");
     // Read temperature in celsius
   temperature = dht.readTemperature();
   // Read temperature as fahrenheit
@@ -194,15 +204,27 @@ void read_sensors() {
 
 /**
  * Read bluetooth serial and print to console.
+ * @return String that bluetooth got.
  */
-void read_blt() {
+String read_blt() {
   #if(USE_BLT == 1)
   if (Serial.available()) {
     SerialBT.write(Serial.read());
   }
-  if (SerialBT.available()) {
-    Serial.write(SerialBT.read());
+  if(SerialBT.available()) {
+    Serial.println("Reading BLT...");
   }
+  String blt_str = "";
+  
+  while(SerialBT.available()) {
+    char blt_char = SerialBT.read();
+    blt_str += blt_char;
+    //Serial.write(blt_char);
+  }
+  if(blt_str != "") {
+    //Serial.println("GOT: " + blt_str);
+  }
+  return blt_str;
   #endif
 }
 
@@ -228,6 +250,64 @@ void publish_sensors_to_mqtt() {
   delay(1000);
   #endif
 }
+
+/**
+ * Process BLT string request.  
+ */
+void process_blt(String str) {
+#if(USE_BLT == 1)
+  if(str == "") return;
+
+  char str_len = str.length();
+  
+  Serial.println("BLT String: " + str);
+  
+  char protocol_code = str[0];
+  
+  if(protocol_code == PC_CHANGE_WIFI) {
+    Serial.println("BLT: Change wifi requested");
+
+    int ind = 1; //Start digesting request
+    char tmp;
+    
+    tmp = str[ind++];
+    int tens = (int)tmp - 48; //Convert to ascii
+    
+    tmp = str[ind++];
+    int ones = (int)tmp - 48;
+
+    //Serial.println("Tens = " + String(tens) + "  Ones = " + String(ones));
+    //Serial.println("ind = " + String(ind));
+
+    int ssid_len = tens*10 + ones; //SSID len can be from 00 to 99 (2 chars)
+    Serial.println("SSID len:");
+    Serial.println(ssid_len);
+    String ssid = "";
+
+    int tmp_int = ind;
+    
+    for(; ind < tmp_int + ssid_len; ind++) {
+      ssid += str[ind];
+      Serial.println(ssid);
+    }
+    Serial.println("SSID: " + ssid);
+
+    //Read password (2 chars) (reuse variables names)
+    tens = str[ind++];
+    ones = str[ind++];
+    tmp_int = ind;
+    int pass_len = tens*10 + ones;
+    String pass = "";
+    for(; ind < tmp_int + pass_len; ind++) {
+      pass += str[ind];
+    }
+
+    Serial.println("PASSWORD: " + pass);
+    
+  }
+
+#endif
+}
  
 /**
  * Main loop.
@@ -237,7 +317,9 @@ void loop() {
   mqtt_client.loop();
   #endif
 
-  read_blt();
+  String res = read_blt();
+  process_blt(res);
+  
   read_sensors();
   publish_sensors_to_mqtt();
 }
