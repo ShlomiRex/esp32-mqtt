@@ -3,7 +3,7 @@
 */
 //Edit this section to enable/disable services on esp32
 #define USE_WIFI 1
-#define USE_MQTT 0
+#define USE_MQTT 1
 #define USE_BLT 1
 #define USE_SENSORS 0
 /* 
@@ -12,9 +12,9 @@
 #if(USE_WIFI == 1)
 #include <WiFi.h>
 
-//NOT const because BLT can change it.
-char* wifi_ssid = "Shark";
-char* wifi_password =  "0542557736";
+//NOT const because BLT can change it. (wifi_ssid can change based on BLT requests)
+char* wifi_ssid = "Ariel_University"; //Please leave this as default
+char* wifi_password =  "";
 WiFiClient espClient;
 
 #endif
@@ -24,7 +24,7 @@ WiFiClient espClient;
 
 #if(USE_MQTT == 1)
 #include <PubSubClient.h>
-const char* mqttServer = "192.168.43.250";
+const char* mqttServer = "10.9.0.48";
 const int mqttPort = 1883;
 const char* mqttUser = "user1";
 const char* mqttPassword = "pass1";
@@ -90,7 +90,7 @@ void setup() {
 
   blt_setup();
   dht_setup();
-  wifi_setup(); //dont connect to wifi streight away, wait for blt (For dev porpuses)
+  wifi_setup();
   mqtt_setup();
 }
 
