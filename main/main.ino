@@ -57,6 +57,14 @@ const char PC_CHANGE_WIFI = '5';
 /* 
 ------------------ SENSORS CONFIGURATION ------------------
 */
+/*
+   MATRIX CONNECTIVITY:
+   GND = 9
+   3.3v = 11
+   DHT sensor = 16
+   light sensor = 17
+   PIR = 22
+*/
 
 #if(USE_SENSORS == 1)
 #include "DHT.h"
@@ -64,6 +72,10 @@ const char PC_CHANGE_WIFI = '5';
 #define DHTTYPE DHT11
 #define DHTPin 12
 #define InPin 14 // input for light sensor
+int pirPin = 16; // input pin for PIR
+int val; //PIR data
+int value;
+
 
 float temperature = 0;
 float fahrenheit = 0;
@@ -191,6 +203,9 @@ void read_sensors() {
    //light sensor:
   lightValue = analogRead( InPin );
 
+  //PIR sensor:
+   val = digitalRead(pirPin);
+
   Serial.println("Light Value: " + String(lightValue));
 
 
@@ -251,18 +266,19 @@ String read_blt() {
 void publish_sensors_to_mqtt() {
   #if(USE_MQTT == 1 && USE_SENSORS == 1)
   String json =
-    "{"
-    "\"celsius\": \"" + String(temperature) + "\","
-    "\"fahrenheit\": \"" + String(fahrenheit) + "\","
-    "\"humidity\": \"" + String(humidity) + "\","
-    "\"lightSensor\": \"" + lightValue + "\"}";
+      "{"
+      "\"celsius\": \"" + String(temperature) + "\","
+      "\"fahrenheit\": \"" + String(fahrenheit) + "\","
+      "\"humidity\": \"" + String(humidity) + "\","
+      "\"PIR\": \"" + String(val) + "\","
+      "\"lightSensor\": \"" + String(value) + "\"}";
 
   // Convert JSON string to character array
   char jsonChar [100];
   json.toCharArray(jsonChar, json.length() + 1);
 
   // Publish JSON character array to MQTT topic
-  client.publish(mqtt_topic_sensors, jsonChar);
+  mqtt_client.publish(mqtt_topic_sensors, jsonChar);
   delay(1000);
   #endif
 }
