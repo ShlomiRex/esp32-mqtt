@@ -90,7 +90,7 @@ void setup() {
 
   blt_setup();
   dht_setup();
-  //wifi_setup(); //dont connect to wifi streight away, wait for blt (For dev porpuses)
+  wifi_setup(); //dont connect to wifi streight away, wait for blt (For dev porpuses)
   mqtt_setup();
 }
 
