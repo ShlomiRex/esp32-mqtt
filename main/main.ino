@@ -249,7 +249,7 @@ String read_blt() {
  * Publish sensors data to mqtt.
  */
 void publish_sensors_to_mqtt() {
-  #if(USE_MQTT == 1)
+  #if(USE_MQTT == 1 && USE_SENSORS == 1)
   String json =
     "{"
     "\"celsius\": \"" + String(temperature) + "\","
