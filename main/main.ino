@@ -24,10 +24,10 @@ WiFiClient espClient;
 
 #if(USE_MQTT == 1)
 #include <PubSubClient.h>
-const char* mqttServer = "10.9.0.48";
-const int mqttPort = 1883;
-const char* mqttUser = "user1";
-const char* mqttPassword = "pass1";
+const char* mqttServer = "192.168.43.12";
+const int mqttPort = 1883;  
+const char* mqttUser = "";
+const char* mqttPassword = "";
 PubSubClient mqtt_client(espClient);
 const char* mqtt_topic_sensors = "esp/sensors";
 #endif
