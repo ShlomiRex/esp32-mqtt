@@ -5,7 +5,7 @@
 #define USE_WIFI 1
 #define USE_MQTT 1
 #define USE_BLT 1
-#define USE_SENSORS 0
+#define USE_SENSORS 1
 /* 
 ------------------ WIFI CONFIGURATION ------------------
 */
